@@ -1,3 +1,6 @@
+// http://wpquestions.com/question/showChronoLoggedIn/id/9333
+// display a specific category level of a post inside the loop
+// USAGE: <?php display_cat_level(X,true); ?> where TRUE = linked | false/empty = not linked
 function get_level($category, $level = 0)
 {
     if ($category->category_parent == 0) {
