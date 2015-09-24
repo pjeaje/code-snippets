@@ -1,0 +1,27 @@
+function get_level($category, $level = 0)
+{
+    if ($category->category_parent == 0) {
+        return $level;
+    } else {
+        $level++;
+        $category = get_category($category->category_parent);
+		return get_level($category, $level);
+    }
+}
+
+function display_cat_level( $level = 0 , $link=false){
+
+	$cats = get_the_category( );
+	if( $cats ){
+		foreach($cats as $cat){
+			$current_cat_level = get_level($cat);
+			if( $current_cat_level  == $level ){
+				if($link==true) {
+					echo '<a href="'.get_category_link($cat->cat_ID).'">'.$cat->name."</a><br />";
+				} else {
+					echo $cat->name."<br />";
+				}
+			}
+		}
+	}
+}
