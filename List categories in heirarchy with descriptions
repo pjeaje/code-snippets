@@ -1,0 +1,48 @@
+// USAGE:: <?php list_cats_with_desc() ;?>
+// Create a modified output of wp_list_categories where the categories description
+// is added inside a span tag within the link like so:
+//<li><a title="Category Description" href="#">Category Name<span>Category Description</span></a></li>
+
+function list_cats_with_desc() {
+
+  $base = wp_list_categories('echo=0&hide_empty=0');
+
+  // wp_list_categories adds a "cat-item-[category_id]" class to the <li> so let's make use of that!
+  // Shouldn't really use regexp to parse HTML, but oh well.
+  // (for the curious, here's why: http://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454 )
+
+  $get_cat_id = '/cat-item-[0-9]+/';
+
+  preg_match_all($get_cat_id, $base, $cat_id);
+
+  // Let's prepare our category descriptions to be injected.
+  // Format will be <a>category-name<span>category-desc</span></a>
+
+  $inject_desc = array();
+  $i = 0;
+  foreach($cat_id[0] as $id) {
+    $id = trim($id,'cat-item-');
+    $id = trim($id,'"');
+    $desc = trim(strip_tags(category_description($id)),"\n");   // For some reason, category_description returns the
+                                                                // description wrapped in an unwanted paragraph tag which
+                                                                // we remove with strip_tags. It also adds a newline
+                                                                // which we promptly trim out.
+    if($desc=="") $desc = "Add Description";
+    $inject_desc[$i] = '</a> <span class="cat-desc">' . $desc . '</span>';
+    $i++;
+  }
+  // Now we inject our descriptions
+  $base_arr = explode("\n", $base);
+  $base_i = 0;
+  foreach($inject_desc as $desc) {
+    // We check whether there's an occurence of "</a>"
+    while(strpos($base_arr[$base_i], "</a>") === false) {
+      $base_i++;
+    }
+    // If we find one, inject our description <span>
+    $base_arr[$base_i] = str_replace("</a>", $desc, $base_arr[$base_i]);
+    $base_i++;
+  }
+  $base = implode("\n", $base_arr);
+  echo $base;
+}
