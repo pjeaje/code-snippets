@@ -1,0 +1,50 @@
+// https://wordpress.org/support/topic/copy-an-authors-cpt-post-custom-field-to-the-same-authors-normal-post?replies=3
+// http://wordpress.stackexchange.com/questions/203349/how-to-copy-a-custom-field-from-the-users-cpt-to-the-users-normal-posts
+
+function wpse_203349_copy_post_meta( $post_ID, $post, $update ) {
+ 
+    if ( $post->post_type !== 'post' )
+ 
+        return;
+ 
+ 
+ 
+    $users_custom_posts = get_posts(
+ 
+        array(
+ 
+            'posts_per_page' => 1,
+ 
+            'post_author' => $post->post_author,
+ 
+            'post_type' => 'custom_post_type',
+ 
+        )
+ 
+    );
+ 
+ 
+ 
+    if ( ! $users_custom_posts )
+ 
+        return; // This author doesn't currently have any custom posts
+ 
+ 
+ 
+    $fields = get_post_custom( $users_custom_posts[0]->ID );
+ 
+ 
+ 
+    foreach ( $fields as $field => $value ) {
+ 
+        if ( $field[0] !== '_' && ( empty( $value[0] ) || ! is_array( $value[0] ) ) ) // Ignore "private" fields (prefixed with an underscore or serialized data)
+ 
+            add_post_meta( $post_ID, $field, empty( $value[0] ) ? '' : $value[0], true /* Unique */ ); // If the field already exists, it won't be overwritten, unlike update_post_meta()
+ 
+    }
+ 
+}
+ 
+ 
+ 
+add_action( 'wp_insert_post', 'wpse_203349_copy_post_meta', 10, 3 );
