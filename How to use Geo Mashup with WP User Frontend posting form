@@ -1,0 +1,23 @@
+// https://wordpress.org/support/topic/how-to-use-geo-mashup-with-wp-user-frontend-posting-form
+//  How to use Geo Mashup with WP User Frontend posting form
+// 1. name/rename the google maps custom field meta key as location
+// 2. Insert this into your theme's functions.php
+ 
+add_action( 'added_post_meta', 'do_after_post_meta', 10, 4 );
+add_action( 'updated_post_meta', 'do_after_post_meta', 10, 4 );
+function do_after_post_meta( $meta_id, $post_id, $meta_key, $meta_value )
+{
+    if ( 'location' == $meta_key ) {
+        if( !empty ($meta_value) ):
+            $location_array = explode(",", $meta_value);
+            update_post_meta( $post_id, 'geo_latitude', $location_array[0] );
+            update_post_meta( $post_id, 'geo_longitude', $location_array[1] );
+        endif;
+    }
+}
+ 
+// 3. update the Geo Mashup plugin Overall settings:
+// - Copy Geodata Meta Fields = tick this
+// - Geocode Custom Field = enter geo_latitude,geo_longitude,location
+//
+//Your mashups will now take the location as per your WP User Frontend form.
