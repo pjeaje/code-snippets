@@ -1,0 +1,20 @@
+// Only allow post author to reply to a comment on their post
+// http://wpquestions.com/question/showChronoLoggedIn/id/10126
+
+add_action( 'pre_comment_on_post', 'wpq_pre_commenting' );
+
+function wpq_pre_commenting( $pid ) {
+
+    $parent_id = filter_input( INPUT_POST, 'comment_parent', FILTER_SANITIZE_NUMBER_INT );
+
+    $post         = get_post( $pid );
+
+    $cuid         = get_current_user_id();
+
+    if( ! is_null( $post ) && $post->post_author == $cuid && 0 == $parent_id ) {
+
+        wp_die(	'Sorry, post author can only reply to a comment!' );
+
+    }
+
+} 
