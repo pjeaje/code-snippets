@@ -1,0 +1,41 @@
+// suffix it everywhere
+
+add_filter( 'the_title', 'gowp_post_id_title_suffix' ); // registers our action filter; the 2nd parameter is the name of the function we'll use to return the (possibly) updated title
+function gowp_post_id_title_suffix( $title ) {
+	global $post; // get the current post object
+	if ( 'post' == $post->post_type ) { // only apply our change to Posts
+		$title .= " - {$post->ID}"; // append the post ID to the title
+	}
+	return $title; // return the title, even if we haven't modified it
+}
+
+// don't suffix  it to menus AND sidebar
+add_filter( 'the_title', 'gowp_post_id_title_suffix' ); // registers our action filter; the 2nd parameter is the name of the function we'll use to return the (possibly) updated title
+function gowp_post_id_title_suffix( $title ) {
+	global $post; // get the current post object
+	if ( ( 'post' == $post->post_type ) && in_the_loop() ) { // only apply our change to Posts while in the loop
+		$title .= " - {$post->ID}"; // append the post ID to the title
+	}
+	return $title; // return the title, even if we haven't modified it
+}
+
+// don't suffix to menu only
+add_action( 'loop_start', 'gowp_pttf_add' );
+add_action( 'loop_end', 'gowp_pttf_remove' );
+
+add_action( 'dynamic_sidebar_before', 'gowp_pttf_add' );
+add_action( 'dynamic_sidebar_after', 'gowp_pttf_remove' );
+
+function gowp_pttf_add() {
+	add_filter( 'the_title', 'gowp_pttf_do' );
+}
+function gowp_pttf_remove() {
+	remove_filter( 'the_title', 'gowp_pttf_do' );
+}
+function gowp_pttf_do( $title ) {
+	global $post; // get the current post object
+	if ( $post && ( 'post' == $post->post_type ) ) { // only apply our change to Posts
+		$title .= " - {$post->ID}"; // append the post ID to the title
+	}
+	return $title; // return the title, even if we haven't modified it
+}
