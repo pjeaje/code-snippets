@@ -1,0 +1,23 @@
+// http://wpquestions.com/question/showChronoLoggedIn/id/9677
+/*
+I have a website where I have the featured image displayed above the content as a show piece image. I also have the gallery code <?php echo do_shortcode('[gallery link="file"]'); ?> below the content to automatically display if ALL the images attached to my post.
+Now, if I only attach 1 image it will be the featured image above the content and therefore no need to show the gallery which would be the same featured image below the content. If I attached 2 images however the gallery would look much more appropriate.
+Looking for a piece of code that would allow this...
+if attached images > 1
+then do "this"
+elseif attached images =<1
+then do "something else" 
+*/
+<?php $args = array(
+'post_type' => 'attachment',
+'post_mime_type' => 'image',
+'post_parent' => get_the_ID()
+);
+$images = get_posts( $args );
+if( count( $images )  == 1 ){ ?>
+ HTML Goes HERE 
+<?php } else if( count( $images )  > 1 ){ ?>
+ HTML Goes HERE 
+<?php } else { ?>
+ HTML Goes HERE 
+<?php } ?>
