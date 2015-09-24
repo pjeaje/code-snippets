@@ -1,0 +1,40 @@
+function change_post_date( $post_id, $post ) {
+ 
+    // WordPress calls "save_post" when a post is saved, updated, autosaved,
+    // revision created, or ajax called. We only want to execute this function
+    // during post save and update. The next 3 "if" statements check to see why
+    // save_post was called...
+ 
+    // Autosave? Do nothing
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+        return;
+    // AJAX? Do nothing
+    if ( defined( 'DOING_AJAX' ) && DOING_AJAX )
+        return;
+    // Post revision? Do nothing
+    if ( false !== wp_is_post_revision( $post_id ) )
+        return;
+ 
+    // Make sure the person editing the post has permission to do so
+    if ( ! current_user_can( 'edit_post', $post_id ) )
+        return;
+ 
+    // Get the "date-time" field
+    $date_time_field = get_post_meta($post_id, 'date-time', true);
+ 
+    // Unhook
+    remove_action('save_post', 'change_post_date', 10);
+ 
+    $args = array (
+        'ID' => $post_id,
+        'post_date' => $date_time_field,
+        'post_date_gmt' => gmdate('Y-m-d H:i:s', strtotime($date_time_field) )
+    );
+ 
+    wp_update_post( $args );
+ 
+    // Re-hook
+    add_action('save_post', 'change_post_date', 10);
+ 
+}
+add_filter('save_post', 'change_post_date', 10, 2);
