@@ -1,0 +1,6 @@
+<?php if (strtotime($post->post_date) > strtotime('+1 minute')): ?>
+<p>current</p>
+ <?php elseif (strtotime($post->post_date) > strtotime('-999999999 days')) : ?>
+<p>expired</>
+<?php else : ?>
+ <?php endif; ?>
