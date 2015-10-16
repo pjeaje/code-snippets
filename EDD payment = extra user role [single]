@@ -1,0 +1,27 @@
+function ao_edd_run_when_purchase_complete( $payment_id, $new_status, $old_status ) {
+
+	// Make sure that payments are only completed once
+
+	if( $old_status == 'publish' || $old_status == 'complete' ){
+
+		return;} 
+
+	// Make sure the payment completion is only processed when new status is complete
+
+	if($new_status != 'publish' && $new_status != 'complete' ){
+
+		return;
+
+	}
+
+	$payment_data = edd_get_payment_meta( $payment_id );
+
+    $user_info = maybe_unserialize( $payment_data['user_info'] );
+
+		$user = new WP_User($user_info['id']);
+
+		$user->add_role( 'contributor' ); //Here add the role that you want as secondary
+
+}
+
+add_action( 'edd_update_payment_status', 'ao_edd_run_when_purchase_complete', 100, 3 );
