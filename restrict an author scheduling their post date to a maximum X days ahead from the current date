@@ -1,0 +1,271 @@
+<?php
+/**
+ * Plugin Name: Publish Date Restrictions
+ * Plugin URI:  http://wordpress.stackexchange.com/a/205252/26350
+ * Author:      Birgir Erlendsson (birgire)
+ * Version:     0.0.2
+ */
+
+namespace wpse\birgire;
+
+add_action( 'admin_init', function()
+{
+    if( class_exists( 'wpse\birgire\Main' ) )
+    {
+        $main = new Main;
+        $main->init( 
+            new Dropdown, 
+            new Restrictions 
+        );
+    }
+} );
+
+class Config
+{
+    const CPT       = 'post';
+    const INTERVAL  = 8;
+}
+
+interface MainInterface 
+{
+    public function init( DropdownInterface $dropdown, RestrictionsInterface $restrictions );
+    public function wp_insert_post_data( Array $data, Array $arr );
+    public function do_meta_boxes();
+    public function modified_meta_box( \WP_Post $post, Array $args );
+}
+
+interface DropdownInterface
+{
+    public function merge( \WP_Post $post, $html = '' );
+}
+
+interface RestrictionsInterface
+{
+    public function post_data( Array $data, Array $arr );
+
+}
+
+class Dropdown implements DropdownInterface
+{       
+    private function get_options( \WP_Post $post )
+    {
+        // current post's Y-m-d time
+        $post_ymd = ( new \DateTime( $post->post_date ) )->format( 'Y-m-d' );
+
+        // Current local timestamp
+        $now = current_time( 'timestamp' );
+
+        // Construct custom +8days "Y-m-d" dropdown options
+        $options = '';
+        for( $i = 0; $i < (int) Config::INTERVAL; $i++ )
+        {
+            // Next YMD according to the local time
+            $ymd = ( new \DateTime )
+                ->setTimestamp( $now )
+                ->modify( sprintf( '+%dday', $i ) )
+                ->format( 'Y-m-d' );
+
+            // Label
+            switch ( $i ) 
+            {
+                case 0:
+                    $label = __( 'Today' );
+                    break;
+                case 1:
+                    $label = __( 'Tomorrow' );
+                    break;
+                default:
+                    $label = $ymd;
+            }
+
+            // Options
+            $options .= sprintf( 
+                '<option value="%s"%s>%s</option>', 
+                $ymd, 
+                selected( $ymd, $post_ymd, 0 ),
+                $label 
+            );
+
+        } // end of for loop
+
+        return $options;
+    }
+
+    private function get_style()
+    {
+        // Hide the current "Y, m, d" inputs 
+        // Note: We can't remove it with preg_replace, because of Javascript checks
+        return '
+            <style>
+                .timestamp-wrap label:nth-child(5),
+                .timestamp-wrap label:nth-child(2),
+                .timestamp-wrap label:nth-child(3),
+                .timestamp-wrap label:nth-child(4) {
+                    display:none !important;
+                }
+            </style>
+        ';
+    }
+
+    private function get_html( \WP_Post $post )
+    {
+        // Construct custom +8days "Y-m-d" dropdown 
+        return sprintf(
+            '<label><span class="screen-reader-text">YMD</span>
+                <select id="wpse_ymd" name="wpse_ymd">
+                    <option value="">Select</option> %s     
+                </select>
+            </label>
+            %s',
+            $this->get_options( $post ),
+            $this->get_style()
+        );  
+    }   
+
+    public function merge( \WP_Post $post, $html = '' )
+    {
+        // Create a +8days "Y-m-d" dropdown 
+        $dropdown = $this->get_html( $post );
+
+        // Inject into the metabox HTML
+        $from = '<label><span class="screen-reader-text">Month</span>';
+        $to  = $dropdown . $from;
+        return str_replace( $from, $to, $html );
+    }
+}
+
+
+class Restrictions implements RestrictionsInterface
+{
+    public function post_data( Array $data, Array $arr )
+    {
+        // Target the corresponding post type when the restricted 'wpse_ymd' is posted
+        if(     
+            ! empty( $data['post_type'] ) 
+            && Config::CPT !== $data['post_type'] 
+        )
+            return $data;   
+
+        // input date is valid
+        $valid = false;
+
+        // Current local datetime object
+        $local = ( new \DateTime )->setTimestamp( current_time( 'timestamp' ) );
+
+        // Process the selected custom dropdown date     
+        if( ! empty( $arr['wpse_ymd'] ) ) 
+        {
+            // Create datetime objects
+            $input_date_obj = ( new \DateTime )->createFromFormat( 'Y-m-d', $arr['wpse_ymd']   );   
+            $post_date_obj  = ( new \DateTime )->createFromFormat( 'Y-m-d H:i:s', $data['post_date'] );
+
+            // If valid date and not too far into the future!
+            if(    $this->is_valid_date( $input_date_obj )
+                && (int) Config::INTERVAL  >= $this->signed_diff_in_days( $local, $input_date_obj )
+            ) {
+                // Create mysql date strings
+                $new_post_date_obj = $post_date_obj->setDate( 
+                    $input_date_obj->format( 'Y' ), 
+                    $input_date_obj->format( 'm' ), 
+                    $input_date_obj->format( 'd' )
+                );
+
+                // Override current post_date and post_date_gmt 
+                $data['post_date']      = $new_post_date_obj->format( 'Y-m-d H:i:s' );
+                $data['post_date_gmt']  = $new_post_date_obj->setTimezone( new \DateTimeZone( 'GMT' ) )->format( 'Y-m-d H:i:s' );
+
+                // Set status to 'future' if > now
+                if( $new_post_date_obj->format( 'timestamp' ) > $now )
+                    $data['post_status'] = 'future';
+
+                $valid = true;
+            }
+        }
+
+        // Set the post date to the current time, 
+        // if user selected a date too far into the future
+        if( ! $valid )
+        {
+            $data['post_date']      = $local->format( 'Y-m-d H:i:s' );
+            $data['post_date_gmt']  = $local->setTimezone( new \DateTimeZone( 'GMT' ) )->format( 'Y-m-d H:i:s' );           
+        }
+
+        return $data;
+    }
+
+    private function is_valid_date( \DateTimeInterface $obj )
+    {
+        return 
+               is_a( $obj, '\DateTime' ) 
+            && 0 === $obj->getLastErrors()['error_count']
+            && 0 === $obj->getLastErrors()['warning_count'];
+    }
+
+    private function signed_diff_in_days( \DateTimeInterface $dt1, \DateTimeInterface $dt2 )
+    {
+        $dt = $dt1->diff( $dt2 );
+
+        // Calculate the number of days (both positive or negativve) 
+        // See more here http://stackoverflow.com/a/22967760/2078474
+        return $dt->days * ( $dt->invert ? -1 : 1 );        
+    }
+
+}
+
+class Main implements MainInterface
+{
+    private $dropdown;
+    private $restrictions;
+
+    public function init( DropdownInterface $dropdown, RestrictionsInterface $restrictions  )
+    {
+        $this->restrictions  = $restrictions;
+        $this->dropdown      = $dropdown;
+
+        add_action( 'do_meta_boxes',        [ $this, 'do_meta_boxes' ] );       
+        add_filter( 'wp_insert_post_data',  [ $this, 'wp_insert_post_data'], 10, 2 );
+    }
+
+    public function wp_insert_post_data( Array $data, Array $arr )
+    {
+        return $this->restrictions->post_data( $data, $arr );
+    }
+
+    public function do_meta_boxes()
+    {
+        // Remove submitdiv meta-box
+        remove_meta_box( 
+            'submitdiv', 
+            sanitize_key( Config::CPT ), 
+            'side' 
+        );
+
+        // Add it again, modified
+        add_meta_box( 
+            'submitdiv', 
+            __( 'Publish' ), 
+            [ $this, 'modified_meta_box' ], 
+            sanitize_key( Config::CPT ), 
+            'side', 
+            'high' 
+        );
+    }
+
+    public function modified_meta_box( \WP_Post $post, Array $args )
+    {
+        // Inject our custom +8days "Y-m-d" dropdown
+        echo $this->dropdown->merge( 
+            $post,
+            $this->get_meta_box( $post, $args )  // Grab the current submit box
+        );      
+    }
+
+    private function get_meta_box( \WP_Post $post, Array $args )
+    {
+        ob_start();
+        post_submit_meta_box( $post, $args = [] );
+        return ob_get_clean();      
+    }
+
+
+} // end class
