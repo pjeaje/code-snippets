@@ -1,0 +1,71 @@
+function pw_edd_run_when_purchase_complete( $payment_id, $new_status, $old_status ) {
+
+    if ( $old_status == 'publish' || $old_status == 'complete' ) {
+
+        return;
+
+    } // Make sure that payments are only completed once
+
+
+
+    // Make sure the payment completion is only processed when new status is complete
+
+    if ( $new_status != 'publish' && $new_status != 'complete' ) {
+
+        return;
+
+    }
+
+
+
+    $downloads = edd_get_payment_meta_downloads( $payment_id );
+
+    $user_id   = edd_get_payment_user_id( $payment_id );
+
+
+
+    if ( is_array( $downloads ) ) {
+
+        // Increase purchase count and earnings
+
+        foreach ( $downloads as $download ) {
+
+            $user = new WP_User( $user_id );
+
+            if(!$user )
+
+                continue;
+
+
+
+            if( $download['id'] == 340 ) {
+
+                 // Add custom role
+
+				 // Change 340 to the download id of the product that a certain role corresponds
+
+                $user->add_role( 'buyer' );
+
+				//also change buyer depending on your role that you created in User Role Editor
+
+				
+
+            } elseif( $download['id'] == 240 ) {
+
+                 // Add custom role
+
+				  // Change 340 to the download id of the product that a certain role corresponds
+
+                $user->add_role( 'other_role' );
+
+				//also change other_role depending on your role that you created in User Role Editor
+
+            }
+
+        }
+
+    }
+
+}
+
+add_action( 'edd_update_payment_status', 'pw_edd_run_when_purchase_complete', 100, 3 );
