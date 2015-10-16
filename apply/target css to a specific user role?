@@ -1,0 +1,20 @@
+// Lokks like this..
+// <body class=" ... role-administrator role-jedi role-knight ... ">
+
+add_filter( 'body_class', function( $classes )
+{
+    if( is_user_logged_in() )
+    {       
+        $classes = array_merge( 
+            (array) $classes,
+            array_map( 
+                function( $class )
+                {
+                    return 'role-' . $class;    // Here we prepend the 'role-' string
+                }, 
+                (array) wp_get_current_user()->roles 
+            )
+        );
+    }
+    return $classes;
+} );
