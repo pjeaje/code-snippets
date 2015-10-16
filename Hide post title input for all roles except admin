@@ -1,0 +1,6 @@
+add_action('admin_init', 'admin_only_post_title');
+function admin_only_post_title() {  
+if (!current_user_can('manage_options'))
+     remove_post_type_support('post', 'title');
+
+}
