@@ -1,8 +1,0 @@
-<?php
-$post_id = 956; // <<<< change page id here
-$queried_post = get_post($post_id);
-$content = $queried_post->post_content;
-$content = apply_filters('the_content', $content);
-$content = str_replace(']]>', ']]>', $content);
-echo $content;
-?>
