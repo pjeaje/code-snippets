@@ -1,0 +1,21 @@
+add_filter('pre_post_title', 'wpse28021_mask_empty');
+add_filter('pre_post_content', 'wpse28021_mask_empty');
+function wpse28021_mask_empty($value)
+{
+    if ( empty($value) ) {
+        return ' ';
+    }
+    return $value;
+}
+
+add_filter('wp_insert_post_data', 'wpse28021_unmask_empty');
+function wpse28021_unmask_empty($data)
+{
+    if ( ' ' == $data['post_title'] ) {
+        $data['post_title'] = '';
+    }
+    if ( ' ' == $data['post_content'] ) {
+        $data['post_content'] = '';
+    }
+    return $data;
+}
