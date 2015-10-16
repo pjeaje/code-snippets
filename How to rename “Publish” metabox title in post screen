@@ -1,0 +1,5 @@
+function change_publish_meta_box() {
+    remove_meta_box( 'submitdiv', 'post', 'side' );
+    add_meta_box( 'submitdiv', 'YOUR TITLE HERE', 'post_submit_meta_box', null, 'side', 'high' );
+}
+add_action( 'add_meta_boxes_post',  'change_publish_meta_box' );
