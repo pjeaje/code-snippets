@@ -1,0 +1,7 @@
+<?php $value = get_post_meta($post->ID, 'comment_status', true); ?>
+<?php if($value == 'open') { ?>
+do something here
+<?php } elseif($value == 'close') { ?>
+do something else here
+<?php } else { ?>
+<?php } ?>
