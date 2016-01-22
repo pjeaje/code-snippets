@@ -1,0 +1,23 @@
+function rei_preprocess_comment($comment_data) {
+	if ($comment_data['comment_content'] == '%dummy-text%') {
+		$comment_data['comment_content'] = ''; // replace dummy text.
+	}
+    return $comment_data;
+}
+add_filter('preprocess_comment', 'rei_preprocess_comment');
+function rei_wp_footer() {
+    ?>
+	<script>
+	jQuery(function($){
+		var comment = $('textarea#comment');
+		comment.removeAttr('required'); // remove required attribute of textarea.
+		$('#commentform').on('submit',function(){
+			if (comment.val() == '') {
+				comment.css('text-indent','-999px').val('%dummy-text%'); // change to dummy text.
+			}
+		});
+	});
+	</script>
+	<?php
+}
+add_action( 'wp_footer', 'rei_wp_footer' );
