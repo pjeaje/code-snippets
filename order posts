@@ -1,0 +1,7 @@
+function order_home_asc($query) {
+  if ($query->is_home() && $query->is_main_query()) {
+    $query->set('orderby', 'date');
+	$query->set('order', 'asc');
+  }
+}
+add_action('pre_get_posts', 'order_home_asc');
