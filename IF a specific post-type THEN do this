@@ -1,0 +1,3 @@
+<?php if ( 'post' == get_post_type() ) : ?>
+do this
+<?php endif; ?>
