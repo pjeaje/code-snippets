@@ -1,0 +1,4 @@
+<?php if ( current_user_can( 'manage_options' ) ) { ?>
+<?php edit_comment_link( __( 'Edit', 'generate' ), '<span class="edit-link">| ', '</span>' ); ?>
+<?php } else { ?>
+<?php } ?>						
