@@ -1,0 +1,11 @@
+<?php if(has_term('', 'job_duration')) {?>
+<?php echo strip_tags (get_the_term_list( $post->ID, 'job_duration', ' ',', ')); ?>
+<?php } else { ?>
+<?php } ?>
+
+// now with linkable terms
+
+<?php if(has_term('', 'job_duration')) {?>
+<?php echo get_the_term_list( $post->ID, 'job_duration', ' ',', '); ?>
+<?php } else { ?>
+<?php } ?>
