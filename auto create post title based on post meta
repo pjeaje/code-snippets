@@ -1,1 +1,23 @@
+add_action( 'save_post', 'wpse_214927_alter_title', 10, 2 );
+function wpse_214927_alter_title ( $post_id, $post_object )
+{
 
+    // Target only specific post type
+    if ( 'post' !== $post_object )
+        return;
+
+    // Remove the current action
+    remove_action( current_filter(), __FUNCTION__ );
+
+    $post_date      = $post_object->post_date;
+    $format_date    = DateTime::createFromFormat( 'Y-m-d H:i:s', $post_date );
+    $date_formatted = $format_date->format( 'Y-m-d' ); // Set correct to display here
+    $post_author    = $post_object->post_author;
+    $author_name    = get_the_author_meta( 'display_name', $post_author ); // Adjust as needed
+
+    $my_post = [
+        'ID' => $post_id,
+        'post_title' => $author_name . ' Job #' . $post_id . ' ' . $date_formatted // Change as needed
+    ];
+    wp_update_post( $my_post );
+}
