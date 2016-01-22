@@ -1,0 +1,1 @@
+add_filter('duplicate_comment_id', '__return_false');
