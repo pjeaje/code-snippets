@@ -1,0 +1,20 @@
+function order_home_asc($query) {
+  if ($query->is_home() && $query->is_main_query()) {
+    $query->set('orderby', 'date');
+	$query->set('order', 'asc');
+	$meta_query = [
+		[
+			'key'     => 'job_status',
+			'value'   => 'closed'
+		]
+//		[
+//			'key'     => 'another key',
+//			'value'   => 'another value',
+//			'compare' => '!='
+//		]		
+	];
+	$query->set( 'meta_query', $meta_query );
+	
+  }
+}
+add_action('pre_get_posts', 'order_home_asc');
