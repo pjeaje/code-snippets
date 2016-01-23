@@ -1,0 +1,9 @@
+add_action('in_widget_form', 'spice_get_widget_id');
+function spice_get_widget_id($widget_instance)
+{
+    if ($widget_instance->number=="__i__"){
+     echo "<p><strong>Widget ID is</strong>: Pls save the widget first!</p>"   ;
+  }  else {
+       echo "<p><strong>Widget ID is: </strong>" .$widget_instance->id. "</p>";
+    }
+}
