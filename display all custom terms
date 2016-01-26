@@ -1,0 +1,9 @@
+<?php 
+$xxxxx = get_terms('perth-mortgage-broker','hide-empty=0&orderby=name&order=asc');
+$sep = '';
+foreach ( $xxxxx as $xxxxx ) {
+if( ++$count > 999 ) break;
+echo $sep . '<a href="'.get_term_link($xxxxx).'">'.$xxxxx->name.'</a>';
+$sep = ', ';
+} 
+?>
