@@ -1,0 +1,204 @@
+<?php
+/**
+ * The template for displaying Archive pages.
+ *
+ * Learn more: http://codex.wordpress.org/Template_Hierarchy
+ *
+ * @package GeneratePress
+ */
+
+get_header(); ?>
+
+	<section id="primary" <?php generate_content_class(); ?>>
+		<main id="main" <?php generate_main_class(); ?>>
+
+
+
+<?php /* Display all the author's posts from the custom post type (aaa) */ ?>
+
+<?php
+
+	$authorid = get_the_author_meta( ID, $userID );
+
+            $args=array('author' => $authorid,'post_type' => 'aaa', 'numberposts' => -1);
+
+            $cquery=new WP_Query($args);
+
+            if($cquery->have_posts()):
+
+                while($cquery->have_posts()):
+
+                    $cquery->the_post();
+
+            ?>
+			
+<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
+<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+	<div class="inside-article">
+                <p><?php the_title();?></p>
+				<p><?php the_content();?></p>
+	</div>
+</article><!-- #post-## -->
+</a>
+            <?
+
+                endwhile;
+
+				wp_reset_postdata();
+
+            endif;
+
+			
+
+?>
+
+
+
+
+
+
+<?php /* Author meta */ ?>
+<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+	<div class="inside-article">
+<div class="author-description">
+		<h1 class="page-title"><?php echo get_the_author(); ?>
+		</h1>
+		<p class="author-bio" style="overflow:hidden">	
+		<span style="float:left;padding:0px 10px 5px 0px;"><?php echo get_avatar( get_the_author_meta( 'ID' ), 75 ); ?></span>
+			<?php the_author_meta( 'description' ); ?>
+		</p>
+		<p><?php the_author(); ?> has posted <?php the_author_posts(); ?> jobs</p>
+
+<?php if( get_post_meta($post->ID, "contact_prefer", true) ): ?>
+<?php echo get_post_meta($post->ID, "contact_prefer", true); ?>
+<?php else: ?>
+<?php endif; ?>
+
+</div>
+
+<p><?php fav_authors_link(); ?></p>
+<p><a href="<?php echo get_author_posts_url( get_the_author_meta( 'ID' ) ); ?>" rel="author">Subscribe to Jobs</a></p>
+
+	</div>
+</article><!-- #post-## -->
+
+
+
+<?php /* Display all the author's posts from the custom post type (school profile) */ ?>
+
+ <?php
+ 	$authorid = get_the_author_meta( ID, $userID );
+
+            $args4=array('author'=>$authorid,'post_type'=>'school_profile', 'numberposts'=> -1);
+
+            $cquery4=new WP_Query($args4);
+
+            if($cquery4->have_posts()):
+
+                while($cquery4->have_posts()):
+
+                    $cquery4->the_post();
+
+            ?>
+<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
+<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+	<div class="inside-article">
+                <p><?php the_title();?></p>
+	</div>
+</article><!-- #post-## -->
+</a>
+            <?
+
+                endwhile;
+
+				wp_reset_postdata();
+
+            endif;
+
+?>
+
+
+
+
+<?php /* List author's normal posts */ ?>
+
+<?php
+	$authorid = get_the_author_meta( ID, $userID );
+	
+            $args3=array('author'=>$authorid,'post_type'=>'post', 'numberposts'=> -1, 'order' => 'ASC');
+
+            $cquery3=new WP_Query($args3);
+
+            if($cquery3->have_posts()):
+
+                while($cquery3->have_posts()):
+
+                    $cquery3->the_post();
+
+            ?>
+
+<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">			
+<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+	<div class="inside-article">
+<p><?php the_title(); ?><br />
+<small style="color:#333;"><?php if(has_term('', 'job_duration')) {?><?php echo strip_tags( get_the_term_list( $post->ID, 'job_duration', ' ',', ')); ?><?php } else { ?> 1 day<?php }?><?php if(has_term('', 'school-year-level')) {?> &middot; year <?php echo strip_tags( get_the_term_list( $post->ID, 'school-year-level', ' ',', ')); ?><?php } else { ?><?php }?><?php if(has_term('', 'school-learning-area')) {?> &middot; <?php echo strip_tags(get_the_term_list( $post->ID, 'school-learning-area', ' ',', ')); ?><?php } else { ?><?php }?></small></p>
+	</div>
+</article><!-- #post-## -->
+</a>
+            <?
+
+                endwhile;
+
+				wp_reset_postdata();
+
+            endif;
+
+?>
+
+
+<?php /* Display all the author's posts from the custom post type (bbb) */ ?>
+<?php
+	$authorid = get_the_author_meta( ID, $userID );
+	
+            $args2=array('author'=>$authorid,'post_type'=>'bbb', 'numberposts'=> -1);
+
+            $cquery2=new WP_Query($args2);
+
+            if($cquery2->have_posts()):
+
+                while($cquery2->have_posts()):
+
+                    $cquery2->the_post();
+
+            ?>
+<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
+<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+	<div class="inside-article">
+                <p><?php the_title();?></p>
+	</div>
+</article><!-- #post-## -->
+</a>
+            <?
+
+                endwhile;
+
+				wp_reset_postdata();
+
+            endif;
+
+?>
+
+
+
+
+
+
+
+
+
+		</main><!-- #main -->
+	</section><!-- #primary -->
+
+<?php 
+do_action('generate_sidebars');
+get_footer();
