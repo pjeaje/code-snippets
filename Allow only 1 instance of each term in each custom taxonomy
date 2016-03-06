@@ -1,0 +1,53 @@
+// http://wordpress.stackexchange.com/questions/219803/allow-only-1-instance-of-each-term-in-each-custom-taxonomy
+
+add_filter( 'pre_insert_term', function ( $term, $taxonomy )
+{
+    /**
+     * Start by validating the term. The taxonomy is already validated
+     * 
+     * If the term is a numeric or int value, we will bail. We will let wp_insert_term
+     * handle the process from here on. This is just a very loose check on our side
+     */
+    if ( is_numeric( $term ) )
+        return $term;
+
+    /**
+     * $term is a valid non numeric string, so we most probably have a term name
+     *
+     * We will now basically use the same logic as `wp_insert_term` to validate the $term
+     * name.
+     */
+    $term_name = strtolower( filter_var( $term, FILTER_SANITIZE_STRING ) );
+
+    /**
+     * Get all terms which matchings names like $term_name
+     *
+     * Getting terms by name is not an exact match, but a LIKE comparison, so
+     * if you have names like 'Term A', 'term a' and 'term A', they all will match.
+     * We will need to do an exact match later on
+     */
+    $name_matches = get_terms( 
+        $taxonomy, 
+        [
+            'name'       => $term_name,
+            'hide_empty' => false,
+            'fields'     => 'names', // Only get term names
+        ] 
+    );
+    // If $name_matches is empty, we do not have duplicates, bail
+    if ( !$name_matches )
+        return $term;
+
+    // Convert all names into lowercase
+    $names_array = array_map( 'strtolower', $name_matches );
+    // Test to see if we have an exact term name match, if so, return WP_Error
+    if ( in_array( $term_name, $names_array ) )
+        return new WP_Error( 
+            'term_exists',
+            __( 'You cannot have a term with the same name, choose a unique name.' ),
+            $term 
+        );
+
+    // OK we have a unique term name, let 'wp_insert_term' continue the rest of the process
+    return $term;   
+}, 10, 2 );
