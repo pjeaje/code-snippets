@@ -1,0 +1,69 @@
+add_filter( 'comments_array', 'wpq_comments_filter' );
+
+
+
+function wpq_comments_filter( $comments ) {
+
+
+
+        $author_id = $GLOBALS['post']->post_author;
+
+        $cuid      = get_current_user_id();
+
+
+
+        $lookup = array();
+
+        foreach( $comments as $comment ) {
+
+                $lookup[$comment->ID] =	$comment;
+
+ 	}
+
+
+
+        $newcomments = array();
+
+        foreach( $comments as $comment ) {
+
+
+
+                // user	is logged in:
+
+                if( $cuid > 0 )	{
+
+
+
+                        $parent_id = $lookup[$comment->ID]->comment_parent;
+
+
+
+                        if(
+
+                           	// The user sees only his own comment:
+
+                                   $author_id != $cuid && $comment->user_id == $cuid
+
+                                // The user got a reply from the author that should be visible:
+
+                                || $author_id == $comment->user_id && $parent_id > 0 && $lookup[$parent_id]->user_id == $cuid
+
+                                // The user is the post author, so everything is visible:
+
+                                || $author_id == $cuid
+
+                        ) {
+
+                           	$newcomments[] = $comment;
+
+                        }
+
+                }
+
+        }
+
+
+
+        return $newcomments;
+
+}
