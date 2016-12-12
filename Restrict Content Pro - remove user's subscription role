@@ -1,0 +1,12 @@
+add_action('wp_loaded', 'remove_role_to_expired');
+function remove_role_to_expired(){
+$members = rcp_get_members( 'expired', 2 ); // Subscription ID
+
+if( $members ) {
+foreach ( $members as $member ) {
+$member = new RCP_Member( $member->ID );
+$user_role = 'school'; // user-role to be deleted
+$member->remove_role( $user_role );
+}
+}
+}
