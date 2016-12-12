@@ -1,3 +1,5 @@
+// http://wpquestions.com/Restrict_Content_Pro_remove_user_s_subscription_role/19602
+
 add_action('wp_loaded', 'remove_role_to_expired');
 function remove_role_to_expired(){
 $members = rcp_get_members( 'expired', 2 ); // Subscription ID
