@@ -1,0 +1,94 @@
+//http://wpquestions.com/Function_to_delete_all_post_comments_older_than_x_days/19600
+//https://wordpress.org/support/topic/delete-older-comments/
+
+function md_scheduled_delete_comments() {
+$comments = get_comments( array(
+'post_type' => 'my_post_type',
+'date_query' => array(
+'before' => '7 days ago',
+),
+) );
+
+if ( $comments ) {
+foreach ( $comments as $comment ) {
+wp_delete_comment( $comment );
+}
+}
+}
+add_action( 'wp_scheduled_delete', 'md_scheduled_delete_comments' );
+// You can test it immediately by adding following line:
+// add_action( 'wp_loaded', 'md_scheduled_delete_comments' );
+
+/////////////////////////////////////////////////////////////////////
+
+// version 2
+// https://gist.github.com/reigelgallarde/58af092daab2bdec0ae566682c9c5387
+add_filter( 'comments_template_query_args', 'remove_old_comments' );
+function remove_old_comments($comment_args) {
+	global $wpdb, $post;
+	
+	if ($post->post_type == 'post') {
+		
+		$date = date("Y-m-d", strtotime("-9 months") ) ;
+		$wpdb->query( 
+			$wpdb->prepare( 
+				"
+				 DELETE FROM $wpdb->comments
+				 WHERE comment_post_ID = %d
+				 AND comment_date <= %s
+				",
+					$post->ID, $date 
+			)
+		);
+		
+	}
+	return $comment_args;
+}
+
+/////////////////////////////////////////////////////////
+// version 3
+// https://gist.github.com/reigelgallarde/a66315ae1baaef4aa0b18802441fd8fd
+add_filter( 'template_redirect', 'remove_old_comments' );
+function remove_old_comments() {
+	global $wpdb, $post;
+	
+	if ( is_single() && ($post->post_type == 'post') ) {
+		
+		$days = 9; // replace with number of days...
+		$date = date("Y-m-d", strtotime("-{$days} days") ) ;
+		$wpdb->query( 
+			$wpdb->prepare( 
+				"
+				 DELETE FROM $wpdb->comments
+				 WHERE comment_post_ID = %d
+				 AND comment_date <= %s
+				",
+				 $post->ID, $date 
+			)
+		);
+	}
+}
+
+///////////////////////////////////////////////////////////////
+// version 4  (untested)
+//
+add_action( 'wp_loaded', 'wpq_delete_comments');
+function wpq_delete_comments() {
+global $wpdb, $post;
+
+$days	= 30; // days => change it
+$my_cpt	= 'your_custom_post_type'; // change with your custom post type 
+
+if ( !is_admin() AND is_single() AND is_object($post) AND $post->post_type==$my_cpt ) { 
+
+$date = date('Y-m-d H:i:s', (time() - ($days *24*60*60)));
+
+$wpdb->query( 
+$wpdb->prepare( 
+" DELETE FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_date < %s ",
+$post->ID, ''.$date.'' 
+)
+); 
+
+}
+}
