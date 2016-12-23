@@ -1,0 +1,62 @@
+<?php 
+	$args = array(
+	'post_type' => array( 'post' ),
+	'post_status' => array( 'publish' ),	
+	'author' => $comment->user_id,
+	'orderby' => 'post_date',
+	'order' => 'ASC',
+	'posts_per_page' => 1
+	);
+	$comment_author_posts = get_posts( $args );
+	if ($comment_author_posts):
+	foreach ( $comment_author_posts as $comment_author_post ): ?>
+		<p><a href="<?php echo get_permalink( $comment_author_post->ID ) ?>">
+		<?php $categories=get_the_category($comment_author_post->ID); foreach($categories as $category){ echo $category->cat_name; } ?> 
+		<?php /*** echo $comment_author_post->post_title ***/ ?>
+		</a></p>
+<?php endforeach; endif; ?>	
+
+or
+
+$args = array(
+    'post_type' => array( 'post' ),
+    'post_status' => array( 'publish' ),
+    'author' => $comment->user_id,
+    'orderby' => 'post_date',
+    'order' => 'ASC',
+    'posts_per_page' => 1
+);
+$comment_author_posts = get_posts( $args );
+if ($comment_author_posts):
+    foreach ( $comment_author_posts as $comment_author_post ):
+        setup_postdata( $comment_author_post );
+        $categories = get_the_category();
+        ?>
+        <a href="<?php echo get_permalink( $comment_author_post->ID ) ?>"><i class="fa fa-users" aria-hidden="true"></i>
+        <?php echo esc_html( $categories[0]->name ); ?></a>
+
+        <?php
+    endforeach;
+endif;
+
+or
+
+$args = array(
+    'post_type' => array( 'post' ),
+    'post_status' => array( 'publish' ),
+    'author' => $comment->user_id,
+    'orderby' => 'post_date',
+    'order' => 'ASC',
+    'posts_per_page' => 1
+);
+$comment_author_posts = get_posts( $args );
+if ($comment_author_posts):
+    foreach ( $comment_author_posts as $comment_author_post ):
+        $categories = get_the_category( $comment_author_post->ID );
+        ?>
+        <a href="<?php echo get_permalink( $comment_author_post->ID ) ?>"><i class="fa fa-users" aria-hidden="true"></i>
+        <?php echo esc_html( $categories[0]->name ); ?></a>
+
+        <?php
+    endforeach;
+endif;
