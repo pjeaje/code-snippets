@@ -1,0 +1,15 @@
+<?php
+add_filter( 'wp_mail_content_type', 'wpdocs_set_html_mail_content_type' );
+$timelimit=6.5 * 86400; // 6.5 days * seconds per day
+$post_age = date('U') - get_the_modified_date('U');
+if ($post_age < $timelimit) : ?>
+<!-- updated thanks -->
+<?php elseif ($post_age > $timelimit) : ?>
+<?php /*****
+$to = get_the_author_meta( 'user_email' );
+$subject = 'A teacher wants to know your school\'s relief work status';
+$message = '<img src="https://perthreliefteachers.com.au/wp-content/uploads/PerthReliefTeachers-logo-800.jpg" alt="PerthReliefTeachers.com.au Alert" /><br /><br /><br />Hi there,<br /><br />A teacher wants to know your school\'s relief work availability for this week - please login to <a href="https://perthreliefteachers.com.au/school-job-list">PerthReliefTeachers.com.au</a> and update your Job Profile.<br /><br />If you like you can set your job status as "No Jobs" for the current week (It takes less than a minute to update).<br /><br />Schools are listed according to how recently they have updated their Job Profile.<br /><br />Regards,<br /><a href="https://perthreliefteachers.com.au/">PerthReliefTeachers.com.au</a>'; 
+$headers[] = 'From: Perth Relief Teachers <contact@perthreliefteachers.com.au>';
+wp_mail( $to, $subject, $message, $headers );
+remove_filter( 'wp_mail_content_type', 'wpdocs_set_html_mail_content_type' ); *****/ ?>
+<?php endif; ?>
