@@ -9,3 +9,7 @@
 <?php echo get_the_term_list( $post->ID, 'job_duration', ' ',', '); ?>
 <?php } else { ?>
 <?php } ?>
+
+// or...
+
+<?php echo wp_strip_all_tags( get_the_term_list( get_the_ID(), 'job_duration', ' ', ' , ', ' ') ); ?>
