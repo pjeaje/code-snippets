@@ -1,0 +1,30 @@
+Function to send an email to a post author when a user comments on their post in WordPress 
+Here is an example of a function that can be added to your WordPress theme's functions.php file to send an email to the post author when a user comments on their post:
+
+swift
+Copy code
+function notify_post_author_on_comment( $comment_ID, $comment_approved ) {
+ 
+  if( $comment_approved === 1 ) {
+ 
+    $comment = get_comment( $comment_ID );
+    $post_author_email = get_the_author_meta( 'user_email', $comment->post_author );
+    $post_author_name = get_the_author_meta( 'display_name', $comment->post_author );
+    $commenter_name = $comment->comment_author;
+    $post_title = get_the_title( $comment->comment_post_ID );
+    $comment_content = $comment->comment_content;
+ 
+    $message = "Hello " . $post_author_name . ",\n\n";
+    $message .= "A new comment was added to your post: " . $post_title . "\n\n";
+    $message .= "Comment by " . $commenter_name . ": \n";
+    $message .= $comment_content . "\n\n";
+    $message .= "View the comment here: " . get_comment_link( $comment_ID ) . "\n\n";
+    $message .= "Best regards,\nThe WordPress team";
+ 
+    wp_mail( $post_author_email, 'New Comment on Your Post: ' . $post_title, $message );
+ 
+  }
+}
+ 
+add_action( 'comment_post', 'notify_post_author_on_comment', 10, 2 );
+This function uses the wp_mail function to send an email to the post author. The comment_post action hook is used to trigger the function when a comment is posted. The function checks if the comment is approved, and if so, it retrieves the post author's email address and display name, the commenter's name, the post title, and the comment content. These details are then used to construct an email message, which is sent to the post author using the wp_mail function.
