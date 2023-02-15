@@ -1,0 +1,49 @@
+Here's an example code in PHP that you can use to allow the post author in WordPress to block a user from adding a comment on their post:
+
+Add the following code to your WordPress theme's functions.php file to create a custom field for storing the list of blocked users:
+php
+Copy code
+function create_post_blocked_users_field() {
+    add_post_meta_box('post_blocked_users', 'Blocked Users', 'post_blocked_users_callback', 'post', 'normal', 'default');
+}
+add_action('add_meta_boxes', 'create_post_blocked_users_field');
+
+function post_blocked_users_callback($post) {
+    $blocked_users = get_post_blocked_users($post->ID);
+    echo '<ul>';
+    foreach ($blocked_users as $blocked_user) {
+        echo '<li>' . $blocked_user . '</li>';
+    }
+    echo '</ul>';
+    echo '<input type="text" id="blocked_user" name="blocked_user" value="" />';
+    echo '<input type="button" id="block_user" name="block_user" value="Block User" />';
+}
+
+function save_post_blocked_users($post_id) {
+    if (isset($_POST['blocked_user'])) {
+        $blocked_user = $_POST['blocked_user'];
+        $blocked_users = get_post_blocked_users($post_id);
+        $blocked_users[] = $blocked_user;
+        update_post_meta($post_id, 'post_blocked_users', $blocked_users);
+    }
+}
+add_action('save_post', 'save_post_blocked_users');
+
+function get_post_blocked_users($post_id) {
+    return get_post_meta($post_id, 'post_blocked_users', true);
+}
+Add the following code to your WordPress theme's comments.php file to check if the current user is blocked from adding a comment on the post:
+scss
+Copy code
+if (!is_user_logged_in()) {
+    comment_form();
+} else {
+    $current_user = wp_get_current_user();
+    $blocked_users = get_post_blocked_users(get_the_ID());
+    if (!in_array($current_user->user_email, $blocked_users)) {
+        comment_form();
+    } else {
+        echo '<p>You are blocked from adding a comment on this post.</p>';
+    }
+}
+This code uses the add_meta_boxes action to create a custom field for storing the list of blocked users. The code uses the post_blocked_users_callback function to display the list of blocked users and a form for adding a new blocked user on the post edit screen. The code uses the save_post action to save the new blocked user to the post_blocked_users custom field when the post is updated. The code uses the get_post_blocked_users function to retrieve the list of blocked users for a given
