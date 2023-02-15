@@ -1,0 +1,36 @@
+Here's a code snippet that you can use to redirect a user to a certain page according to the day of the week in WordPress:
+
+php
+Copy code
+<?php 
+$current_time = current_time( 'timestamp' );
+$current_day = date( 'l', $current_time );
+
+switch ( $current_day ) {
+   case 'Monday':
+      $redirect_url = 'http://example.com/monday';
+      break;
+   case 'Tuesday':
+      $redirect_url = 'http://example.com/tuesday';
+      break;
+   case 'Wednesday':
+      $redirect_url = 'http://example.com/wednesday';
+      break;
+   case 'Thursday':
+      $redirect_url = 'http://example.com/thursday';
+      break;
+   case 'Friday':
+      $redirect_url = 'http://example.com/friday';
+      break;
+   case 'Saturday':
+      $redirect_url = 'http://example.com/saturday';
+      break;
+   case 'Sunday':
+      $redirect_url = 'http://example.com/sunday';
+      break;
+}
+
+wp_redirect( $redirect_url );
+exit;
+?>
+This code uses the current_time() function to get the current timestamp and the date() function to format the timestamp into a human-readable day of the week. It then uses a switch statement to determine which URL to redirect the user to based on the day of the week. Finally, it uses the wp_redirect() function to redirect the user to the appropriate URL. The exit statement at the end is used to stop any further execution of the code.
