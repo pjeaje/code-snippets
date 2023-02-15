@@ -1,0 +1,33 @@
+Here's an example code in PHP that you can use to log and display all non-logged in visitors who view your posts using cookies in WordPress:
+
+First, add the following code to your WordPress theme's functions.php file to set a cookie when a non-logged in visitor views a post:
+scss
+Copy code
+function set_visitor_cookie() {
+    if (!is_user_logged_in() && is_single()) {
+        $visitor_id = uniqid();
+        setcookie('visitor_id', $visitor_id, time() + (60 * 60 * 24 * 30));
+        $visitors = get_option('visitors', array());
+        $visitors[$visitor_id] = array(
+            'time' => current_time('timestamp'),
+            'post_id' => get_the_ID(),
+        );
+        update_option('visitors', $visitors);
+    }
+}
+add_action('template_redirect', 'set_visitor_cookie');
+Then, add the following code to your WordPress theme's template file (e.g. single.php) to display a list of all non-logged in visitors who viewed the post:
+php
+Copy code
+$visitors = get_option('visitors', array());
+$post_id = get_the_ID();
+foreach ($visitors as $visitor) {
+    if ($visitor['post_id'] == $post_id) {
+        echo '<p>Visitor ID: ' . $visitor['visitor_id'] . ' - Viewed on: ' . date('Y-m-d H:i:s', $visitor['time']) . '</p>';
+    }
+}
+This code uses the is_user_logged_in() function to check if the visitor is logged in. If the visitor is not logged in and they are viewing a single post, the code sets a cookie using the setcookie() function. The cookie's value is a unique identifier generated using the uniqid() function.
+
+The code also stores the visitor's information (their ID and the time they viewed the post) in the visitors option using the update_option() function. To display the list of visitors, the code retrieves the visitors option using the get_option() function and loops through the array to find visitors who viewed the current post.
+
+Note: This code is just an example and is not a complete solution for logging and displaying all non-logged in visitors who view your posts. You may need to modify the code to fit your specific requirements. Additionally, storing visitor information in the visitors option is not a secure or scalable solution for large amounts of data. Consider using a database or a third-party solution for storing and managing visitor information.
