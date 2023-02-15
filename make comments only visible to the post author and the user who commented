@@ -1,0 +1,20 @@
+Here's a code snippet that you can use to make comments only visible to the post author and the user who commented in WordPress:
+
+php
+Copy code
+<?php
+function restrict_comments_to_post_author_and_commenter( $comment_content, $comment ) {
+   $post = get_post( $comment->comment_post_ID );
+   $current_user = wp_get_current_user();
+
+   if ( ( $post->post_author != $current_user->ID ) && ( $comment->user_id != $current_user->ID ) ) {
+      $comment_content = 'This comment is only visible to the post author and the user who commented.';
+   }
+
+   return $comment_content;
+}
+add_filter( 'comment_text', 'restrict_comments_to_post_author_and_commenter', 10, 2 );
+?>
+This code uses the get_post() function to retrieve the post that the comment is attached to, and the wp_get_current_user() function to retrieve the currently logged-in user. It then checks if the current user is either the post author or the user who made the comment. If neither, it replaces the comment content with a message indicating that the comment is only visible to the post author and the user who commented.
+
+The code uses the add_filter() function to hook the restrict_comments_to_post_author_and_commenter function into the comment_text filter, which allows you to modify the content of a comment before it is displayed on the front-end. The 10 argument passed to add_filter() sets the priority of the filter to 10, and the 2 argument sets the number of arguments the filter function will accept (in this case, $comment_content and $comment).
