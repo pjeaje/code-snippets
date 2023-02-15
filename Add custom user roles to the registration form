@@ -1,0 +1,58 @@
+Here is an example function that allows users to choose their user role on registration (except for the administrator role) in WordPress:
+
+/**
+ * Add custom user roles to the registration form.
+ */
+function my_custom_registration_fields() {
+    $user_roles = wp_roles()->roles;
+    $allowed_roles = array_diff_key( $user_roles, array( 'administrator' => '' ) );
+    $user_role_options = array();
+    foreach ( $allowed_roles as $role => $role_details ) {
+        $user_role_options[ $role ] = $role_details['name'];
+    }
+    ?>
+    <p>
+        <label for="user_role"><?php _e( 'Choose your user role:', 'mytextdomain' ) ?><br />
+            <select name="user_role" id="user_role">
+                <?php foreach ( $user_role_options as $option_value => $option_label ) { ?>
+                    <option value="<?php echo esc_attr( $option_value ); ?>"><?php echo esc_html( $option_label ); ?></option>
+                <?php } ?>
+            </select>
+        </label>
+    </p>
+    <?php
+}
+add_action( 'register_form', 'my_custom_registration_fields' );
+
+/**
+ * Validate and save the custom user role field.
+ */
+function my_custom_registration_validation( $errors, $sanitized_user_login, $user_email ) {
+    if ( isset( $_POST['user_role'] ) && ! empty( $_POST['user_role'] ) ) {
+        $user_role = sanitize_text_field( $_POST['user_role'] );
+        $allowed_roles = array_keys( array_diff_key( wp_roles()->roles, array( 'administrator' => '' ) ) );
+        if ( ! in_array( $user_role, $allowed_roles ) ) {
+            $errors->add( 'invalid_user_role', __( 'Invalid user role.', 'mytextdomain' ) );
+        } else {
+            add_filter( 'user_registration_email', 'my_set_user_role', 10, 3 );
+            add_filter( 'wp_new_user_notification_email_admin', 'my_set_user_role', 10, 3 );
+            function my_set_user_role( $user_email, $user_login, $user_pass ) {
+                $user_role = sanitize_text_field( $_POST['user_role'] );
+                $new_user = get_user_by( 'email', $user_email );
+                if ( $new_user ) {
+                    $new_user->set_role( $user_role );
+                }
+                return $user_email;
+            }
+        }
+    } else {
+        $errors->add( 'invalid_user_role', __( 'Please choose a user role.', 'mytextdomain' ) );
+    }
+    return $errors;
+}
+add_filter( 'registration_errors', 'my_custom_registration_validation', 10, 3 );
+This function adds custom user roles to the registration form, but excludes the administrator role. The function first gets all user roles using the wp_roles() function, then uses the array_diff_key() function to remove the administrator role from the array of roles. It then loops through the remaining roles to create the options for the select field.
+
+The validation function checks if the selected role is allowed (not administrator) and if not, it adds an error to the $errors object. If the selected role is allowed, the function sets the user's role using the set_role() method, and returns the email.
+
+Note that in this code, the administrator role is not displayed as an option in the user role select field.
