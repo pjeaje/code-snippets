@@ -1,0 +1,22 @@
+Here's a code snippet that you can use to only allow users with certain domains to register in WordPress:
+
+php
+Copy code
+<?php
+function restrict_registration_by_email_domain( $errors, $sanitized_user_login, $user_email ) {
+   $allowed_domains = array( 'example.com', 'example.org', 'example.net' );
+   $email_domain = substr( strrchr( $user_email, "@" ), 1 );
+   
+   if ( ! in_array( $email_domain, $allowed_domains ) ) {
+      $errors->add( 'email_domain_error', 'Sorry, registration is only allowed for users with email addresses from specific domains.' );
+   }
+
+   return $errors;
+}
+add_filter( 'registration_errors', 'restrict_registration_by_email_domain', 10, 3 );
+?>
+This code creates a function called restrict_registration_by_email_domain that takes three arguments: $errors, $sanitized_user_login, and $user_email. The function defines an array of allowed domains ($allowed_domains) and uses the substr and strrchr functions to extract the domain part of the email address. It then uses the in_array function to check if the email domain is in the list of allowed domains. If not, the function adds an error message to the $errors object using the add() method.
+
+The code uses the add_filter() function to hook the restrict_registration_by_email_domain function into the registration_errors filter, which allows you to modify the registration error messages. The 10 argument passed to add_filter() sets the priority of the filter to 10, and the 3 argument sets the number of arguments the filter function will accept (in this case, $errors, $sanitized_user_login, and $user_email).
+
+When a user attempts to register with an email address that is not from an allowed domain, they will see the error message added by this function.
