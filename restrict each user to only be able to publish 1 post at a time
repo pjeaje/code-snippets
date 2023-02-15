@@ -1,0 +1,21 @@
+Function to restrict each user to only be able to publish 1 post at a time in WordPress 
+Here is an example of a function that you can add to your WordPress theme's functions.php file to restrict each user to only be able to publish 1 post at a time:
+
+php
+Copy code
+function restrict_multiple_posts() {
+ 
+  $user_posts = get_posts( array(
+    'author' => get_current_user_id(),
+    'post_type' => 'post',
+    'post_status' => 'publish',
+    'numberposts' => -1
+  ) );
+ 
+  if( count( $user_posts ) >= 1 ) {
+    wp_die( 'You are only allowed to publish one post at a time.' );
+  }
+}
+ 
+add_action( 'publish_post', 'restrict_multiple_posts' );
+This function uses the get_posts function to retrieve all published posts by the current user. If the number of posts is equal to or greater than 1, then the user is restricted from publishing additional posts and is presented with an error message using the wp_die function. The publish_post action hook is used to trigger the function whenever a post is published.
