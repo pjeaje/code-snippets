@@ -1,0 +1,91 @@
+function calculate_acf_field_statistics($category_slug, $field_name) {
+    $category = get_category_by_slug($category_slug);
+    $query_args = array(
+        'cat' => $category->term_id,
+        'meta_query' => array(
+            array(
+                'key' => $field_name,
+                'compare' => 'EXISTS',
+            )
+        ),
+        'posts_per_page' => -1
+    );
+    $query = new WP_Query($query_args);
+    $post_count = $query->post_count;
+    $values = array();
+    if ($post_count > 0) {
+        foreach ($query->posts as $post) {
+            $value = get_field($field_name, $post->ID);
+            $values[] = $value;
+        }
+        $mean = round(array_sum($values) / $post_count, 2);
+        $median = round(calculate_median($values), 2);
+        $mode = calculate_mode($values);
+        $range = range(min($values), max($values));
+        $counts = array_count_values($values);
+        $boxplot_data = array();
+        foreach ($values as $value) {
+            $boxplot_data[] = array(get_the_title(array_search($value, $values)), $value);
+        }
+        $statistics = array(
+            'mean' => $mean,
+            'median' => $median,
+            'mode' => $mode,
+            'range' => $range,
+            'counts' => $counts,
+            'boxplot_data' => $boxplot_data
+        );
+        return $statistics;
+    } else {
+        return null;
+    }
+}
+
+function calculate_median($values) {
+    sort($values);
+    $count = count($values);
+    $middle = floor(($count-1)/2);
+    if($count % 2) {
+        return $values[$middle];
+    } else {
+        $low = $values[$middle];
+        $high = $values[$middle+1];
+        return (($low+$high)/2);
+    }
+}
+
+function calculate_mode($values) {
+    $counts = array_count_values($values);
+    arsort($counts);
+    $mode_values = array_keys($counts, max($counts));
+    return $mode_values;
+}
+
+$category_slug = 'ecu-num3511-assessment-1';
+$field_name = 'score';
+$statistics = calculate_acf_field_statistics($category_slug, $field_name);
+
+$category = get_category_by_slug($category_slug);
+$category_name = $category->name;
+
+if ($category->parent) {
+    $parent_category = get_category($category->parent);
+    $parent_category_name = $parent_category->name;
+    echo 'The average score for the unit ' . $category_name . ' for the unit ' . $parent_category_name . ' is ' . $statistics['mean'] . '<br>';
+} else {
+    echo 'The average score ' . $field_name . ' in the unit ' . $category_name . ' is ' . $statistics['mean'] . '<br>';
+}
+
+echo 'The median is ' . $statistics['median'] . '<br>';
+
+if (count($statistics['mode']) == 1) {
+    echo 'The mode is ' . $statistics['mode'][0] . '<br>';
+} else {
+    echo 'The modes are: ';
+    foreach ($statistics['mode'] as $mode_value) {
+        echo $mode_value . ' ';
+    }
+    echo '<br>';
+}
+
+echo 'The number of posts in the category is ' . count($statistics['boxplot_data'])
