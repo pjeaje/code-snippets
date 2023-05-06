@@ -12,7 +12,7 @@ function limit_media_files($file) {
     
     // Check if the user has already uploaded 5 or more files
     if ($media_files->found_posts >= 5) {
-        $file['error'] = __('You have reached the limit of 5 files in your media library.', 'textdomain');
+        $file['error'] = __('You have reached the limit of 5 files in your media library. If you need to upload a file, you will need to delete one of your current files first.', 'textdomain');
     }
 
     return $file;
