@@ -1,0 +1,49 @@
+function restrict_comments_to_authors_and_post_author($query) {
+    // Check if the user is logged in
+    if (is_user_logged_in()) {
+        $current_user_id = get_current_user_id();
+
+        // Only modify the query on the front end and if the current user is not an administrator
+        if (!is_admin() && !current_user_can('manage_options')) {
+            $query->query_vars['meta_query'] = array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_comment_author_id',
+                    'value' => $current_user_id,
+                ),
+                array(
+                    'key' => '_post_author_id',
+                    'value' => $current_user_id,
+                ),
+            );
+        }
+    } else {
+        // If the user is not logged in, do not show any comments
+        $query->query_vars['comment__in'] = array(0);
+    }
+}
+add_action('pre_get_comments', 'restrict_comments_to_authors_and_post_author');
+
+function save_comment_meta_data($comment_id) {
+    $comment = get_comment($comment_id);
+    $post = get_post($comment->comment_post_ID);
+
+    update_comment_meta($comment_id, '_comment_author_id', $comment->user_id);
+    update_comment_meta($comment_id, '_post_author_id', $post->post_author);
+}
+add_action('comment_post', 'save_comment_meta_data', 10, 1);
+
+function hide_comment_text_for_others($comment_text, $comment, $args) {
+    if (!is_admin() && !current_user_can('manage_options')) {
+        $current_user_id = get_current_user_id();
+        $comment_author_id = get_comment_meta($comment->comment_ID, '_comment_author_id', true);
+        $post_author_id = get_comment_meta($comment->comment_ID, '_post_author_id', true);
+
+        if ($current_user_id != $comment_author_id && $current_user_id != $post_author_id) {
+            return 'This comment is private.';
+        }
+    }
+
+    return $comment_text;
+}
+add_filter('comment_text', 'hide_comment_text_for_others', 10, 3);
