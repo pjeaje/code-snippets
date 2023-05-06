@@ -1,0 +1,29 @@
+function limit_image_upload_size_and_dimensions($file) {
+    // Set the maximum file size (in bytes)
+    $max_file_size = 500 * 1024; // 500 KB
+
+    // Set the maximum image dimensions (in pixels)
+    $max_width = 1000;
+    $max_height = 1000;
+
+    $error = false;
+
+    if ($file['size'] > $max_file_size) {
+        $error = 'The uploaded image exceeds the maximum file size of ' . ($max_file_size / 1024) . ' KB.';
+    } else {
+        $image_attributes = getimagesize($file['tmp_name']);
+        $width = $image_attributes[0];
+        $height = $image_attributes[1];
+
+        if ($width > $max_width || $height > $max_height) {
+            $error = 'The uploaded image dimensions exceed the maximum allowed dimensions of ' . $max_width . 'x' . $max_height . ' pixels.';
+        }
+    }
+
+    if ($error) {
+        $file['error'] = $error;
+    }
+
+    return $file;
+}
+add_filter('wp_handle_upload_prefilter', 'limit_image_upload_size_and_dimensions');
