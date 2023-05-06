@@ -1,0 +1,18 @@
+function map_posts_to_wp_user_frontend($post_id, $post, $update) {
+    // If this is a newly created post, skip mapping
+    if (!$update) {
+        return;
+    }
+
+    // Check if the post was created using WP User Frontend
+    $is_wpuf_post = get_post_meta($post_id, '_wpuf_form_id', true);
+
+    // If the post was not created using WP User Frontend, update the metadata
+    if (!$is_wpuf_post) {
+        // Replace '123' with the form ID of your WP User Frontend form
+        $wpuf_form_id = 123;
+        update_post_meta($post_id, '_wpuf_form_id', $wpuf_form_id);
+    }
+}
+
+add_action('save_post', 'map_posts_to_wp_user_frontend', 10, 3);
