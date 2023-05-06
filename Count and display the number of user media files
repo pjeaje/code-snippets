@@ -1,0 +1,52 @@
+function display_media_count() {
+    $user_id = get_current_user_id();
+    $media_query = new WP_Query( array(
+        'post_type' => 'attachment',
+        'author' => $user_id,
+        'post_status' => 'inherit',
+        'posts_per_page' => -1,
+    ) );
+    $total_media = $media_query->post_count;
+
+    ?>
+    <div class="dashboard-widget">
+        <h2>Media Library Count</h2>
+		<p>You have <?php echo $total_media; ?> files in your media library.</p>
+    </div>
+    <?php
+}
+
+function add_dashboard_widgets() {
+    wp_add_dashboard_widget('media_count_widget', 'Media Library Count', 'display_media_count');
+}
+
+add_action('wp_dashboard_setup', 'add_dashboard_widgets');
+
+function count_user_media_files() {
+    // Check if the current page is the media library
+    $screen = get_current_screen();
+    if ($screen->id !== 'upload') {
+        return;
+    }
+
+    // Get the current user ID
+    $current_user_id = get_current_user_id();
+
+    // Query media files for the current user
+    $media_files = new WP_Query(array(
+        'post_type' => 'attachment',
+        'post_status' => 'inherit',
+        'posts_per_page' => -1,
+        'author' => $current_user_id
+    ));
+
+    // Get the number of files in the media library
+    $file_count = $media_files->found_posts;
+
+    // Display the message
+    $message = sprintf(__('You have %d files in your media library.', 'textdomain'), $file_count);
+    echo '<div class="notice notice-info is-dismissible"><h2>' . $message . '</h2></div>';
+}
+
+add_action('admin_notices', 'count_user_media_files');
+
