@@ -1,0 +1,35 @@
+function count_user_media_files() {
+    // Check if the current page is the media library
+    $screen = get_current_screen();
+    if ($screen->id !== 'upload') {
+        return;
+    }
+
+    // Get the current user ID
+    $current_user_id = get_current_user_id();
+
+    // Query media files for the current user
+    $media_files = new WP_Query(array(
+        'post_type' => 'attachment',
+        'post_status' => 'inherit',
+        'posts_per_page' => -1,
+        'author' => $current_user_id
+    ));
+
+    // Get the number of files in the media library
+    $file_count = $media_files->found_posts;
+
+    // Define the message based on file count
+    if ($file_count === 0) {
+        $message = __('You have no files in your media library.', 'textdomain');
+    } elseif ($file_count === 5) {
+        $message = __('<h2>You have 5 file in your media library</h2><img src="https://perthmetro.net/wp-content/uploads/2023/05/thatll-do-donkey.jpg" />', 'textdomain');
+    } else {
+        $message = sprintf(__('You have %d files in your media library.', 'textdomain'), $file_count);
+    }
+
+    // Display the message
+    echo '<div class="notice notice-info is-dismissible"><p>' . $message . '</p></div>';
+}
+
+add_action('admin_notices', 'count_user_media_files');
