@@ -1,0 +1,57 @@
+function apply_css_if_media_count_exceeds_limit() {
+    $user_id = get_current_user_id();
+    $media_query = new WP_Query( array(
+        'post_type' => 'attachment',
+        'author' => $user_id,
+        'post_status' => 'inherit',
+        'posts_per_page' => -1,
+    ) );
+    $total_media = $media_query->post_count;
+    $media_limit = 55;
+
+    if ($total_media > $media_limit) {
+        ?>
+        <style>
+            /* Add your CSS rules here */
+            #menu-media ul li:nth-child(3),
+			#wpbody-content a.page-title-action,
+			#wp-admin-bar-new-media a.ab-item,
+			#insert-media-button span,
+			#wp-content-media-buttons,
+			#async-upload-wrap,
+			#drag-drop-area,
+			#wp-admin-bar-new-media,
+			#menu-item-upload,
+			#wp-admin-bar-new-content
+			{
+                display: none;
+            }
+        </style>
+        <?php
+    }
+}
+
+add_action('admin_head', 'apply_css_if_media_count_exceeds_limit');
+
+
+
+function display_media_library_message() {
+    $user_id = get_current_user_id();
+    $media_query = new WP_Query( array(
+        'post_type' => 'attachment',
+        'author' => $user_id,
+        'post_status' => 'inherit',
+        'posts_per_page' => -1,
+    ) );
+    $total_media = $media_query->post_count;
+    $media_limit = 7;
+
+    if ($total_media > $media_limit && $_GET['page'] == 'media-new.php') {
+        ?>
+        <div class="notice notice-error"><p>You have too many files in your media library.</p></div>
+        <?php
+    }
+}
+
+add_action('in_admin_footer', 'display_media_library_message');
+
