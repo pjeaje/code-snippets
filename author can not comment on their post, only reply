@@ -1,0 +1,74 @@
+function restrict_author_comments() {
+    if (is_user_logged_in() && is_singular()) {
+        global $post, $current_user;
+        wp_get_current_user();
+
+        if ($post->post_author == $current_user->ID) {
+            add_action('wp_footer', 'hide_comment_form_for_author');
+        }
+    }
+}
+add_action('wp', 'restrict_author_comments');
+
+function hide_comment_form_for_author() {
+    echo <<<CSS
+    <style type="text/css">
+        #respond > h3,
+        #commentform {
+            display: none;
+        }
+        #respond:after {
+            content: 'You cannot leave a message to yourself. You can only reply to other members\' messages.';
+            display: block;
+        }
+    </style>
+CSS;
+
+    echo <<<JS
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var replyLinks = document.querySelectorAll('.comment-reply-link');
+
+            replyLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    var commentForm = document.querySelector('#commentform');
+                    var respondHeading = document.querySelector('#respond > h3');
+                    var respondMessage = document.querySelector('#respond::after');
+
+                    commentForm.style.display = 'block';
+                    respondHeading.style.display = 'block';
+
+                    if (respondMessage) {
+                        respondMessage.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+JS;
+}
+function disable_comments_in_post_edit() {
+    global $pagenow, $typenow, $post;
+
+    if ($pagenow === 'post.php' && $typenow === 'post') {
+        $user_id = get_current_user_id();
+        if (isset($post->post_author) && $user_id === $post->post_author) {
+            add_action('admin_footer', 'hide_add_comment_button_for_author');
+        }
+    }
+}
+
+function hide_add_comment_button_for_author() {
+    echo <<<JS
+    <script type="text/javascript">
+        (function() {
+            var addCommentButton = document.getElementById('add_comment');
+            if (addCommentButton) {
+                addCommentButton.style.display = 'none';
+            }
+        })();
+    </script>
+JS;
+}
+
+add_action('admin_init', 'disable_comments_in_post_edit');
