@@ -1,0 +1,24 @@
+function insert_tags_randomly($content) {
+    // Check if we are inside the main loop in a single post page.
+    if (is_single() && in_the_loop() && is_main_query()) {
+        // Get the tags of the current post
+        $tags = get_the_tags();
+        if ($tags) {
+            $tag_names = array();
+            foreach($tags as $tag) {
+                $tag_names[] = $tag->name;
+            }
+            // Split the content into an array of words
+            $words = explode(' ', $content);
+            // Randomly insert tags into the content
+            for($i = 0; $i < count($tag_names); $i++) {
+                $random_position = rand(0, count($words) - 1);
+                array_splice($words, $random_position, 0, $tag_names[$i]);
+            }
+            // Reconstruct the content
+            $content = implode(' ', $words);
+        }
+    }
+    return $content;
+}
+add_filter('the_content', 'insert_tags_randomly');
