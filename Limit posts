@@ -81,7 +81,12 @@ function restrict_user_posts($post_id, $post) {
     ));
     
     if ($query->have_posts() && $query->post_count >= $max_user_posts) {
-        wp_die('<center><h2>You can only have ' . $max_user_posts . ' post(s). Try editing your current post(s) instead.</h2><br /><img style="height:500px;" src="https://i.snipboard.io/kUyW2n.jpg" /></center>');
+        $user_posts = $query->get_posts();
+        foreach ($user_posts as $user_post) {
+            if ($user_post->ID != $post_id) {
+                wp_die('<center><h2>You can only have ' . $max_user_posts . ' post(s). Try editing your current post(s) instead.</h2><br /><img style="height:500px;" src="https://i.snipboard.io/kUyW2n.jpg" /></center>');
+            }
+        }
     }
     
     wp_reset_query();
