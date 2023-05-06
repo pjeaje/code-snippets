@@ -1,0 +1,18 @@
+function create_user_post($user_id) {
+    $user = get_userdata($user_id);
+    $post_title = $user->user_login;
+
+    $post_args = array(
+        'post_title' => $post_title,
+        'post_status' => 'publish',
+        'post_author' => 1,
+        'post_type' => 'post'
+    );
+
+    $post_id = wp_insert_post($post_args);
+
+    if ($post_id) {
+        add_post_meta($post_id, 'user_id', $user_id);
+    }
+}
+add_action('user_register', 'create_user_post');
