@@ -1,0 +1,27 @@
+// Limit posts in the admin area to those created by the current user
+function limit_posts_by_current_user($query) {
+    global $pagenow;
+
+    if ('edit.php' != $pagenow && 'upload.php' != $pagenow) {
+        return $query;
+    }
+
+    if (!current_user_can('manage_options')) {
+        global $user_ID;
+        $query->set('author', $user_ID);
+    }
+
+    return $query;
+}
+add_filter('pre_get_posts', 'limit_posts_by_current_user');
+
+// Limit media files in the admin area to those uploaded by the current user
+function limit_media_by_current_user($where, $args) {
+    if (!current_user_can('manage_options')) {
+        global $wpdb, $user_ID;
+        $where .= " AND post_author = $user_ID";
+    }
+
+    return $where;
+}
+add_filter('posts_where', 'limit_media_by_current_user', 10, 2);
