@@ -1,0 +1,90 @@
+// Create the settings page
+function restrict_user_posts_settings_page() {
+    add_options_page(
+        'Restrict User Posts Settings',
+        'Restrict User Posts',
+        'manage_options',
+        'restrict-user-posts-settings',
+        'restrict_user_posts_settings_page_content'
+    );
+}
+
+add_action('admin_menu', 'restrict_user_posts_settings_page');
+
+// Display the settings page content
+function restrict_user_posts_settings_page_content() {
+    ?>
+    <div class="wrap">
+        <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+        <form action="options.php" method="post">
+            <?php
+                settings_fields('restrict_user_posts_settings');
+                do_settings_sections('restrict-user-posts-settings');
+                submit_button();
+            ?>
+        </form>
+    </div>
+    <?php
+}
+
+// Register the settings and fields
+function restrict_user_posts_settings_init() {
+    register_setting('restrict_user_posts_settings', 'max_user_posts');
+
+    add_settings_section(
+        'restrict_user_posts_settings_section',
+        'Settings',
+        null,
+        'restrict-user-posts-settings'
+    );
+
+    add_settings_field(
+        'max_user_posts',
+        'Max Number of Posts per User',
+        'max_user_posts_field_callback',
+        'restrict-user-posts-settings',
+        'restrict_user_posts_settings_section'
+    );
+}
+
+add_action('admin_init', 'restrict_user_posts_settings_init');
+
+// Display the Max Number of Posts input field
+function max_user_posts_field_callback() {
+    $max_user_posts = get_option('max_user_posts', 1);
+    echo '<input type="number" id="max_user_posts" name="max_user_posts" value="' . esc_attr($max_user_posts) . '" min="1" />';
+}
+
+// Restrict user posts based on the maximum number set in the settings page
+function restrict_user_posts($post_id, $post) {
+    if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+        return;
+    }
+    
+    $post_type = get_post_type_object($post->post_type);
+    if ($post_type->name != 'post') {
+        return;
+    }
+    
+    $user = wp_get_current_user();
+    if ($user->ID == 1 || in_array('administrator', $user->roles)) {
+        return;
+    }
+    
+    $max_user_posts = get_option('max_user_posts', 1);
+
+    $query = new WP_Query(array(
+        'post_type' => 'post',
+        'author' => $user->ID,
+        'post_status' => array('publish', 'pending', 'draft', 'private'),
+        'posts_per_page' => -1,
+    ));
+    
+    if ($query->have_posts() && $query->post_count >= $max_user_posts) {
+        wp_die('<center><h2>You can only have ' . $max_user_posts . ' post(s). Try editing your current post(s) instead.</h2><br /><img style="height:500px;" src="https://i.snipboard.io/kUyW2n.jpg" /></center>');
+    }
+    
+    wp_reset_query();
+}
+
+add_action('save_post', 'restrict_user_posts', 10, 2);
