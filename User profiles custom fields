@@ -1,0 +1,206 @@
+function add_custom_user_fields($user) {
+    // Get the custom field values
+    $text_field_value = get_user_meta($user->ID, 'text_field', true);
+    $select_field_value = get_user_meta($user->ID, 'select_field', true);
+    $checkbox_field_value = get_user_meta($user->ID, 'checkbox_field', true);
+    $radio_field_value = get_user_meta($user->ID, 'radio_field', true);
+    $checkboxes_field_values = get_user_meta($user->ID, 'checkboxes_field', true);
+
+    // Define select, radio, and checkbox field options
+    $select_field_options = array('Option 1', 'Option 2', 'Option 3');
+    $radio_field_options = array('Option A', 'Option B', 'Option C');
+    $checkboxes_field_options = array('Option X', 'Option Y', 'Option Z');
+
+    ?>
+<hr />
+    <h2>Your Information</h2>
+
+    <table class="form-table">
+        <tr>
+            <th><label for="text_field">Text Field</label></th>
+            <td><input type="text" name="text_field" id="text_field" value="<?php echo $text_field_value; ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th><label for="select_field">Select Field</label></th>
+            <td>
+                <select name="select_field" id="select_field">
+                    <?php foreach ($select_field_options as $option) : ?>
+                        <option value="<?php echo $option; ?>" <?php selected($select_field_value, $option); ?>><?php echo $option; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="checkbox_field">Checkbox Field</label></th>
+            <td><input type="checkbox" name="checkbox_field" id="checkbox_field" value="1" <?php checked($checkbox_field_value, 1); ?>> tick for yes</td>
+        </tr>
+        <tr>
+            <th><label for="radio_field">Radio Field</label></th>
+            <td>
+                <?php foreach ($radio_field_options as $option) : ?>
+                    <label><input type="radio" name="radio_field" value="<?php echo $option; ?>" <?php checked($radio_field_value, $option); ?>> <?php echo $option; ?></label><br>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="checkboxes_field">Checkboxes Field</label></th>
+            <td>
+                <?php foreach ($checkboxes_field_options as $option) : ?>
+                    <label><input type="checkbox" name="checkboxes_field[]" value="<?php echo $option; ?>" <?php if (in_array($option, $checkboxes_field_values)) { echo 'checked'; } ?>> <?php echo $option; ?></label><br>
+                <?php endforeach; ?>
+            </td>
+        </tr>	
+		
+    </table>
+    <?php
+}
+add_action('show_user_profile', 'add_custom_user_fields');
+add_action('edit_user_profile', 'add_custom_user_fields');
+
+function save_custom_user_fields($user_id) {
+    if (!current_user_can('edit_user', $user_id)) {
+        return;
+    }
+
+    // Update text field
+    if (isset($_POST['text_field'])) {
+        update_user_meta($user_id, 'text_field', sanitize_text_field($_POST['text_field']));
+    }
+
+    // Update select field
+    if (isset($_POST['select_field'])) {
+        update_user_meta($user_id, 'select_field', sanitize_text_field($_POST['select_field']));
+    }
+
+    // Update checkbox field
+    if (isset($_POST['checkbox_field'])) {
+        update_user_meta($user_id, 'checkbox_field', 1);
+    } else {
+        update_user_meta($user_id, 'checkbox_field', 0);
+    }
+
+    // Update radio field
+    if (isset($_POST['radio_field'])) {
+        update_user_meta($user_id, 'radio_field', sanitize_text_field($_POST['radio_field']));
+    }
+
+    // Update checkboxes field
+    if (isset($_POST['checkboxes_field'])) {
+        update_user_meta($user_id, 'checkboxes_field', array_map('sanitize_text_field', $_POST['checkboxes_field']));
+    } else {
+        update_user_meta($user_id, 'checkboxes_field', array());
+    }
+	
+}
+add_action('personal_options_update', 'save_custom_user_fields');
+add_action('edit_user_profile_update', 'save_custom_user_fields');
+
+
+
+
+
+function my_custom_user_profile_pic($user) {
+    $profile_pic_id = get_user_meta($user->ID, 'profile_pic_id', true);
+    $profile_pic_url = wp_get_attachment_url($profile_pic_id);
+    ?>
+
+    <h2>Your Profile Picture</h2>
+
+    <table class="form-table">
+        <tr>
+            <th>
+                <label for="profile_pic">Upload Image</label>
+            </th>
+            <td>
+                <input type="hidden" name="profile_pic_id" id="profile_pic_id" value="<?php echo $profile_pic_id; ?>">
+                <img id="profile_pic_preview" src="<?php echo $profile_pic_url; ?>" width="100px">
+                <br>
+                <input type="button" id="profile_pic_upload_button" class="button" value="Upload Image">
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        jQuery(document).ready(function($) {
+            $('#profile_pic_upload_button').click(function() {
+                var custom_uploader = wp.media({
+                    title: 'Select Image',
+                    button: {
+                        text: 'Upload Image'
+                    },
+                    multiple: false
+                }).on('select', function() {
+                    var attachment = custom_uploader.state().get('selection').first().toJSON();
+                    $('#profile_pic_preview').attr('src', attachment.url);
+                    $('#profile_pic_id').val(attachment.id);
+                }).open();
+            });
+        });
+    </script>
+
+    <?php
+}
+
+add_action('show_user_profile', 'my_custom_user_profile_pic');
+add_action('edit_user_profile', 'my_custom_user_profile_pic');
+
+function my_custom_user_profile_pic_save($user_id) {
+    if (!current_user_can('edit_user', $user_id)) {
+        return;
+    }
+
+    if (isset($_POST['profile_pic_id'])) {
+        update_user_meta($user_id, 'profile_pic_id', $_POST['profile_pic_id']);
+    }
+}
+
+add_action('personal_options_update', 'my_custom_user_profile_pic_save');
+add_action('edit_user_profile_update', 'my_custom_user_profile_pic_save');
+
+function my_custom_admin_scripts() {
+    wp_enqueue_media();
+}
+add_action('admin_enqueue_scripts', 'my_custom_admin_scripts');
+
+////////// add this to you author.php ///////////////
+<?php
+// Get the author ID
+$author_id = get_query_var('author');
+
+// Retrieve the values of each custom field
+$text_field_value = get_the_author_meta('text_field', $author_id);
+$select_field_value = get_the_author_meta('select_field', $author_id);
+$checkbox_field_value = get_the_author_meta('checkbox_field', $author_id);
+$radio_field_value = get_the_author_meta('radio_field', $author_id);
+$checkboxes_field_values = get_the_author_meta('checkboxes_field', $author_id);
+
+// Display the values on the page
+echo '<p>Text field: ' . esc_html($text_field_value) . '</p>';
+echo '<p>Select field: ' . esc_html($select_field_value) . '</p>';
+echo '<p>Checkbox field: ' . ($checkbox_field_value ? 'Yes' : 'No') . '</p>';
+echo '<p>Radio field: ' . esc_html($radio_field_value) . '</p>';
+echo '<p>Checkboxes field:</p>';
+echo '<ul>';
+foreach ($checkboxes_field_values as $value) {
+    echo '<li>' . esc_html($value) . '</li>';
+}
+echo '</ul>';
+?>
+
+<?php
+$author_id = get_queried_object_id();
+$profile_pic_id = get_the_author_meta('profile_pic_id', $author_id);
+if ($profile_pic_id) {
+    echo wp_get_attachment_image($profile_pic_id, 'medium');
+}
+?>
+
+<img style="opacity: 0.5;height:100px;" src="<?php
+$author_id = get_queried_object_id();
+$profile_pic_id = get_the_author_meta('profile_pic_id', $author_id);
+if ($profile_pic_id) {
+    $profile_pic_url = wp_get_attachment_url($profile_pic_id);
+    echo '' . $profile_pic_url . '';
+}
+
+?>" / >
