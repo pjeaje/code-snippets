@@ -1,0 +1,16 @@
+function insert_random_words($content) {
+    // Define your list of words
+    $words = array("the", "to", "of", "and", "in", "a", "that", "for", "on", "with", "is", "at", "be", "by", "was", "it", "said", "he", "as", "his", "have", "from", "but", "not", "are", "they", "an", "their", "or", "this", "who", "has", "had", "been", "up", "after", "about", "we", "will", "can", "more", "if", "new", "could", "than", "out", "into", "were", "when", "other", "people", "would", "these", "may", "first", "water", "should", "because", "united", "states", "where", "little", "number", "before", "system", "through", "education", "still", "money", "world", "over", "year", "there", "while", "service", "friend", "important", "three", "family", "government", "during", "small", "however", "Australia", "against", "place", "system", "company", "program", "particular", "interest", "available", "political", "understand", "health", "sport", "business", "technology", "science", "arts", "politics", "world", "international","about","after","again","always","around","because","before","behind","believe","between","beyond","bring","cannot","change","choose","come","consider","could","course","decide","different","during","either","enough","everyone","example","experience","family","father","friend","great","however","important","include","itself","knowledge","little","matter","moment","mother","nature","nothing","number","people","perhaps","person","problem","provide","public","reason");
+
+    // Choose 55 random words
+    $random_words = array();
+    for($i = 0; $i < 55; $i++) {
+        $random_index = array_rand($words);
+        $random_words[] = $words[$random_index];
+    }
+
+    // Insert the words into the content
+    $content = implode(' ', $random_words);
+    return $content;
+}
+add_filter('default_content', 'insert_random_words');
